@@ -10,6 +10,17 @@ class TicTacToe:
         self.winner = 0
         self.game_over = False
 
+    def getEQ(self):
+        self.imgEQ = np.zeros(cst.BOARD_MAX_SIZE + (3,), dtype=np.uint8)
+        self.imgEQ[:] = cst.GRAY
+
+        # Draw the lines
+        for i in range(5):
+            cv.line(self.imgEQ, (cst.MARGE_V + i * (cst.BOX_SIZE_X + cst.INTER_BOX), cst.MARGE_V),
+                    (cst.MARGE_H + i * (cst.BOX_SIZE_X + cst.INTER_BOX), cst.BOARD_MAX_SIZE[1] - cst.MARGE_V), cst.BLACK,
+                    cst.LINE_SIZE)
+        return self.imgEQ
+
     def getBoard(self):
         self.imgBoard = np.zeros(cst.BOARD_MAX_SIZE + (3,), dtype=np.uint8)
         self.imgBoard[:] = cst.GRAY
@@ -114,3 +125,10 @@ class TicTacToe:
             return True
         else:
             return False
+
+if __name__ == "__main__":
+    # Create the projector
+    game = TicTacToe()
+    EQ = game.getEQ()
+    cv.imshow(cst.WINDOW_PROJECTOR, EQ)
+    cv.waitKey(0)

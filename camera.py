@@ -23,7 +23,7 @@ class Camera:
             self.nextCamera()
 
         # Set the camera exposure
-        self.cap.set(15, -4)
+        self.cap.set(15, -8)
 
     def getFrame(self):
         # Empty the image buffer

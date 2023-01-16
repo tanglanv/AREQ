@@ -1,3 +1,5 @@
+from ctypes import c_void_p
+
 import cv2 as cv
 import cv2.aruco as aruco
 import numpy as np
@@ -113,14 +115,17 @@ class CoreAR:
 
         # Convert to gray
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        green = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
         # Find the difference between the reference frame and the current one
         diff = cv.absdiff(self.refFrame, gray)
+
         # cv.imshow("Difference", diff)
+
 
         # Threshold
         _, thresh = cv.threshold(diff, 130, 255, cv.THRESH_BINARY)
-        # cv.imshow("Threshold", thresh)
+        cv.imshow("Threshold", thresh)
 
         # Opening
         kernel = np.ones((5, 5), np.uint8)

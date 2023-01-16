@@ -85,8 +85,8 @@ class Projector:
         cv.rectangle(mat, (0, 0), (cst.BOARD_MAX_SIZE[0], cst.BOARD_MAX_SIZE[1]), cst.BLUE, cst.LINE_SIZE)
 
         # Draw a square for the playing area
-        cv.rectangle(mat, (cst.EDGE_SIZE[0], cst.EDGE_SIZE[1]),
-                     (cst.BOARD_MAX_SIZE[0] - cst.EDGE_SIZE[0], cst.BOARD_MAX_SIZE[1] - cst.EDGE_SIZE[1]), cst.RED,
+        cv.rectangle(mat, (cst.MARGE_V, cst.MARGE_H),
+                     (cst.BOARD_MAX_SIZE[0] - cst.MARGE_V, cst.BOARD_MAX_SIZE[1] - cst.MARGE_H), cst.RED,
                      cst.LINE_SIZE)
 
         # Warp the image in the projector space and display it
@@ -120,6 +120,7 @@ if __name__ == "__main__":
     try:
         proj.checkCalibration()
     except:
+
         print("Failed to draw the calibration image.")
 
     cv.waitKey(1000)

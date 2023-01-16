@@ -47,7 +47,7 @@ while rep!="y":
 game = ticTacToe.TicTacToe() 
 
 # Display the board
-board = game.getBoard()
+board = game.getEQ()
 proj.draw(board)
 
 # Wait 1s before taking the reference frame
@@ -75,7 +75,7 @@ while key!=27 and game.game_over==False:
             game.play(move)
 
             # Display the board
-            proj.draw(game.getBoard())
+            proj.draw(game.getEQ())
 
             # Wait 1s before taking the reference frame
             key = cv.waitKey(1000)

@@ -167,3 +167,4 @@ class CoreAR:
         # Turn it gray
         self.refFrame = cv.cvtColor(self.refFrame, cv.COLOR_BGR2GRAY)
         cv.imshow("Reference", self.refFrame)
+

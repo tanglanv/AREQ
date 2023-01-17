@@ -6,14 +6,14 @@ import constants as cst
 import projector
 import camera
 import coreAR
-import ticTacToe
+import EQBoard
 
-rep=""
+rep = ""
 
 # Calibration loop
-while rep!="y":
-    rep=""
-        
+while rep != "y":
+    rep = ""
+
     cv.namedWindow(cst.WINDOW_MAIN, cv.WINDOW_NORMAL)
 
     proj = projector.Projector()
@@ -35,16 +35,16 @@ while rep!="y":
     proj.checkCalibration()
     cv.waitKey(30)
 
-    while rep!="y" and rep!="n":
+    while rep != "y" and rep != "n":
         print("Is the calibration correct? (y/n)")
         rep = input()
 
-    if rep=="n":
+    if rep == "n":
         cam.release()
         del proj, cam, core
 
 # Intialize the game
-game = ticTacToe.TicTacToe() 
+game = EQBoard.EQBoard()
 
 # Display the board
 board = game.getEQ()
@@ -59,11 +59,38 @@ currentMove = [-1, -1]
 t = time.time()
 
 # Main loop
-while key!=27 and game.game_over==False:
+while key != 27:
 
     # Try to find a move (in real space coordinate)
     move = core.findMove()
 
+    isInABoxe, i, value = game.isInABoxe(move)
+
+    if isInABoxe:
+
+        # Compute the distance between the current move and the last one
+        d = np.linalg.norm(np.array(move) - np.array(currentMove))
+
+        if d < 100 and time.time() - t > 3:
+            # change value
+            game.changeCursorValue(i, value)
+
+            # Display the board
+            proj.draw(game.getEQ())
+
+            # Wait 1s before taking the reference frame
+            key = cv.waitKey(1000)
+            core.storeRefFrame()
+
+            # Reset variables
+            currentMove = [-1, -1]
+            t = time.time()
+        elif d > 100:
+            # The move is not the same, store it and reset the timer
+            currentMove = move
+            t = time.time()
+
+    """
     # If it's in the board
     if game.isInTheBoard(move):
         # Compute the distance between the current move and the last one
@@ -95,7 +122,7 @@ while key!=27 and game.game_over==False:
         print("Game over.")
         print(game.getResult())
         break
-
+    """
     key = cv.waitKey(100)
 
 cv.destroyAllWindows()

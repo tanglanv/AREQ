@@ -29,7 +29,7 @@ N_MARKER_B1_BL = 27
 N_MARKER_B1_BR = 28
 
 # Marker position on the board (define the board space units) (vertical, horizontal)
-BOARD_MAX_SIZE = (680,1000)
+BOARD_MAX_SIZE = (500,500)
 MARKER_B1_TL = (0,0)
 MARKER_B1_BL = (0,BOARD_MAX_SIZE[1])
 MARKER_B1_TR = (BOARD_MAX_SIZE[0],0)

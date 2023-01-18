@@ -13,6 +13,23 @@ class CoreAR:
     def __init__(self, cam, proj):
         self.cam = cam
         self.proj = proj
+        self.mask = np.zeros(cst.BOARD_MAX_SIZE, dtype="uint8")
+
+    def drawMask(self):
+        print("Computing mask")
+        for i in range(5):
+            x1 = cst.MARGE_H + (cst.BOX_SIZE_X + cst.INTER_BOX) * i
+            y1 = cst.MARGE_V
+            x2 = cst.MARGE_H + (cst.BOX_SIZE_X + cst.INTER_BOX) * i + cst.BOX_SIZE_X
+            y2 = cst.BOARD_MAX_SIZE[0] - cst.MARGE_V
+
+            # Draw Background
+            cv.rectangle(self.mask, (x1, y1), (x2, y2), cst.WHITE, -1)
+
+        frame = self.cam.getFrame()
+
+        self.warped_mask = cv.warpPerspective(self.mask, self.R2C, (frame.shape[1], frame.shape[0]))
+        #cv.imshow("mask", self.warped_mask)
 
     def calibrateCamera(self):
         self.proj.drawBlack()
@@ -70,6 +87,7 @@ class CoreAR:
                 # Clean the lists
                 cornersCamera.clear()
                 cornersBoard.clear()
+        self.drawMask()
 
     def calibrateProjector(self):
         pointsCamera = []
@@ -113,19 +131,22 @@ class CoreAR:
         # Get the current frame
         frame = self.cam.getFrame()
 
+        masked = cv.bitwise_and(frame, frame, mask=self.warped_mask)
+
+        #cv.imshow("masked", masked)
+
         # Convert to gray
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+        gray = cv.cvtColor(masked, cv.COLOR_BGR2GRAY)
         green = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
 
         # Find the difference between the reference frame and the current one
         diff = cv.absdiff(self.refFrame, gray)
 
-        # cv.imshow("Difference", diff)
-
+        #cv.imshow("Difference", diff)
 
         # Threshold
         _, thresh = cv.threshold(diff, 130, 255, cv.THRESH_BINARY)
-        cv.imshow("Threshold", thresh)
+        #cv.imshow("Threshold", thresh)
 
         # Opening
         kernel = np.ones((5, 5), np.uint8)
@@ -164,7 +185,7 @@ class CoreAR:
 
     def storeRefFrame(self):
         self.refFrame = self.cam.getFrame()
+        masked = cv.bitwise_and(self.refFrame, self.refFrame, mask=self.warped_mask)
         # Turn it gray
-        self.refFrame = cv.cvtColor(self.refFrame, cv.COLOR_BGR2GRAY)
+        self.refFrame = cv.cvtColor(masked, cv.COLOR_BGR2GRAY)
         cv.imshow("Reference", self.refFrame)
-

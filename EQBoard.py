@@ -6,6 +6,7 @@ import cv2 as cv
 class EQBoard:
     def __init__(self):
         self.EQValues = [0.0, 0.5, 1, 0.75, 0]
+        self.soundValues = [0.0,0.0,0.0,0.0,0.0]
 
     def getEQ(self):
         self.imgEQ = np.zeros(cst.BOARD_MAX_SIZE + (3,), dtype=np.uint8)
@@ -38,7 +39,7 @@ class EQBoard:
         cv.line(self.imgEQ, (x1 + mrg, y1 + mrg), (x1 + mrg, y2 - mrg), cst.BLACK, cst.LINE_SIZE)
 
         # Draw Boxe
-        cv.rectangle(self.imgEQ, (x1 + 2 * mrg, y1 + mrg), (x2 - mrg, y2 - mrg), cst.RED, -1)
+        # self.updateBar()
 
         # Draw Cursor
         y_center = y1 + int(mrg + (y2 - y1 - 2 * mrg) * (1 - self.EQValues[i]))
@@ -48,6 +49,16 @@ class EQBoard:
         yc2 = y_center + cst.CURSOR_Y
         # print(x1, y1, x2, y2)
         cv.rectangle(self.imgEQ, (xc1, yc1), (xc2, yc2), cst.BLUE, -1)
+
+        y = y1 + int(mrg + (y2 - y1 - 2 * mrg) * (1 - self.soundValues[i]))
+
+        if self.soundValues[i] <= 0.4:
+            color = cst.GREEN
+        elif 0.4 < self.soundValues[i] <= 0.6:
+            color = cst.YELLOW
+        elif 0.6 < self.soundValues[i]:
+            color = cst.RED
+        cv.rectangle(self.imgEQ, (x1 + 2 * mrg, y), (x2 - mrg, y2 - mrg), color, -1)
 
     def isInABoxe(self, pos):
 
@@ -82,6 +93,10 @@ class EQBoard:
 
     def changeCursorValue(self, i, value):
         self.EQValues[i] = value
+
+    def updateSoundValue(self,values):
+        self.soundValues = values
+
 
 
 if __name__ == "__main__":

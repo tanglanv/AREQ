@@ -74,6 +74,7 @@ while key != 27:
         if d < 100 and time.time() - t > 3:
             # change value
             game.changeCursorValue(i, value)
+            print("Values modified : ",value)
 
             # Display the board
             proj.draw(game.getEQ())

@@ -2,27 +2,18 @@
 from pedalboard import *
 from pedalboard.io import AudioFile
 from pedalboard.pedalboard import Pedalboard
-import librosa
 import numpy as np
-import matplotlib.pyplot as plt
-import librosa.display
-import subprocess
-from IPython.display import Audio
-import base64
-
-
-
 import simpleaudio as sa #permet de jouer des fichiers .wav directement dans python en executant le script
 
 
-
+"""
 # Read in a whole file, resampling to our desired sample rate:
 samplerate = 44100.0
-with AudioFile('C:/Users/User/Documents/Documents/FISE A2/UE_E_Raug/file_example_WAV_1MG.wav').resampled_to(
+with AudioFile('musique1.wav').resampled_to(
         samplerate) as f:
     audio = f.read(f.frames)
-
-
+"""
+"""
 # Make a pretty interesting sounding guitar pedalboard:
 board = Pedalboard([
     Compressor(threshold_db=-50, ratio=25),
@@ -58,17 +49,27 @@ board2= Pedalboard([LadderFilter(mode=LadderFilter.Mode.HPF12, cutoff_hz=900)])
 
 rep = 0
 print("change the cutoff value")
+"""
+
+samplerate = 44100.0
+
+wave_obj = sa.WaveObject.from_wave_file("musique1.wav")
+play_obj = wave_obj.play()
+
+print(type(play_obj))
 
 while play_obj.is_playing():
+    # print("we are playing")
+    """
     rep = input()
     if rep !=0 :
-        board2[0].cutoff_hz = rep
+        //board2[0].cutoff_hz = rep
         effected2 = board2(audio, samplerate)
 
         # Write the audio back as a wav file:
         with AudioFile('processed-output.wav', 'w', samplerate, effected.shape[0]) as f:
             f.write(effected2)
-            
+    """
 
 
 

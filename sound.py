@@ -10,8 +10,9 @@ class Sound:
     def __init__(self,path):
         print("init of sound")
         self.path = path
-        self.gain = [1,1,1,1,1]
+        self.gain = [0.5,0.5,0.5,0.5,0.5]
         self.loudness = [0.0,0.0,0.0,0.0,0.0]
+        self.allLoudness = []
 
 
 
@@ -39,6 +40,9 @@ class Sound:
 
             # print("dataArray", type(dataArray),len(dataArray))
 
+
+
+
             filtered = []
             filtered.append(self.filter(dataArray, 120, 300))
             filtered.append(self.filter(dataArray, 300, 700))
@@ -56,6 +60,7 @@ class Sound:
 
             self.loudness = [self.get_loudness(data) for data in amplified]
 
+            self.allLoudness.append(self.loudness)
             # print("loudness : ",self.loudness)
 
             recomposed = amplified[0] + amplified[1] + amplified[2] + amplified[3] + amplified[4]
@@ -63,7 +68,8 @@ class Sound:
             # print("recomposed : ", type(recomposed),len(recomposed))
             #print(" input: ", dataArray[20000:20100])
 
-            data = dataArray.tobytes('F')
+            recomposed = np.array(recomposed, dtype='float32')
+            data = recomposed.tobytes()
             # print("data ",len(data), " ",data[0:100])
 
             if len(outdata) > len(data):

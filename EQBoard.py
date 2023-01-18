@@ -3,20 +3,16 @@ import constants as cst
 import cv2 as cv
 
 
+maxs = [-22.3, -15.9, -22.3, -32.9, -38.6]
+mins = [-38.9, -36.8, -43.1, -68.1, -70]
 class EQBoard:
     def __init__(self):
-        self.EQValues = [0.0, 0.5, 1, 0.75, 0]
-        self.soundValues = [0.0,0.0,0.0,0.0,0.0]
+        self.EQValues = [0.5, 0.5, 0.5,0.5, 0.5]
+        self.soundValues = [1,0.0,0.5,0.7,0.9]
 
     def getEQ(self):
         self.imgEQ = np.zeros(cst.BOARD_MAX_SIZE + (3,), dtype=np.uint8)
         self.imgEQ[:] = cst.GRAY
-
-        # # Draw the lines
-        # for i in range(5):
-        #     cv.line(self.imgEQ, (cst.MARGE_H + i * (cst.BOX_SIZE_X + cst.INTER_BOX), cst.MARGE_V),
-        #             (cst.MARGE_H + i * (cst.BOX_SIZE_X + cst.INTER_BOX), cst.BOARD_MAX_SIZE[0] - cst.MARGE_V), cst.BLACK,
-        #             cst.LINE_SIZE)
 
         # Draw the boxes
         for i in range(5):
@@ -50,15 +46,25 @@ class EQBoard:
         # print(x1, y1, x2, y2)
         cv.rectangle(self.imgEQ, (xc1, yc1), (xc2, yc2), cst.BLUE, -1)
 
-        y = y1 + int(mrg + (y2 - y1 - 2 * mrg) * (1 - self.soundValues[i]))
+        normalised = (self.soundValues[i] - mins[i]) / (maxs[i] - mins[i])
 
-        if self.soundValues[i] <= 0.4:
+        if normalised > 1:
+            value = 1
+        elif normalised < 0:
+            value = 0
+        else:
+            value = normalised
+
+        y_bar = y1 + int(mrg + (y2 - y1 - 2 * mrg) * (1 - value))
+
+        if value <= 0.6:
             color = cst.GREEN
-        elif 0.4 < self.soundValues[i] <= 0.6:
+        elif 0.6 < value <= 0.8:
             color = cst.YELLOW
-        elif 0.6 < self.soundValues[i]:
+        elif 0.8 < value:
             color = cst.RED
-        cv.rectangle(self.imgEQ, (x1 + 2 * mrg, y), (x2 - mrg, y2 - mrg), color, -1)
+
+        cv.rectangle(self.imgEQ, (x1 + 2 * mrg, y_bar), (x2 - mrg, y2 - mrg), color, -1)
 
     def isInABoxe(self, pos):
 

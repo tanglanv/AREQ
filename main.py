@@ -7,6 +7,7 @@ import projector
 import camera
 import coreAR
 import EQBoard
+import sound
 
 rep = ""
 
@@ -19,6 +20,7 @@ while rep != "y":
     proj = projector.Projector()
     cam = camera.Camera(1)
     core = coreAR.CoreAR(cam, proj)
+
 
     print("Calibrating camera...")
     core.calibrateCamera()
@@ -44,10 +46,12 @@ while rep != "y":
         del proj, cam, core
 
 # Intialize the game
-game = EQBoard.EQBoard()
+eq = EQBoard.EQBoard()
+soundCore = sound.Sound("musique1.wav")
+soundCore.playsound()
 
 # Display the board
-board = game.getEQ()
+board = eq.getEQ()
 proj.draw(board)
 
 # Wait 1s before taking the reference frame
@@ -58,26 +62,30 @@ core.storeRefFrame()
 currentMove = [-1, -1]
 t = time.time()
 
+update = False
+
 # Main loop
 while key != 27:
 
     # Try to find a move (in real space coordinate)
     move = core.findMove()
 
-    isInABoxe, i, value = game.isInABoxe(move)
+    isInABoxe, i, value = eq.isInABoxe(move)
 
     if isInABoxe:
 
         # Compute the distance between the current move and the last one
         d = np.linalg.norm(np.array(move) - np.array(currentMove))
 
-        if d < 100 and time.time() - t > 3:
+        if d < 100 and time.time() - t > 1:
             # change value
-            game.changeCursorValue(i, value)
+            eq.changeCursorValue(i, value)
             print("Values modified : ",value)
 
             # Display the board
-            proj.draw(game.getEQ())
+            #proj.draw(eq.getEQ())
+
+            soundCore.set_Gain(i,value)
 
             # Wait 1s before taking the reference frame
             key = cv.waitKey(1000)
@@ -91,6 +99,26 @@ while key != 27:
             currentMove = move
             t = time.time()
 
+
+    eq.updateSoundValue(soundCore.loudness)
+    proj.draw(eq.getEQ())
+
     key = cv.waitKey(100)
 
+"""
+allLoudness = soundCore.allLoudness.copy()
+print(allLoudness)
+n = len(allLoudness)
+maxs = [-np.inf,-np.inf,-np.inf,-np.inf,-np.inf]
+mins = [np.inf,np.inf,np.inf,np.inf,np.inf]
+for i in range(len(allLoudness)):
+    for j in range(5):
+        if allLoudness[i][j] > maxs[j]:
+            maxs[j] = allLoudness[i][j]
+        if allLoudness[i][j] < mins[j]:
+            mins[j] = allLoudness[i][j]
+
+print("max : ",maxs)
+print("mins : ",mins)
+"""
 cv.destroyAllWindows()

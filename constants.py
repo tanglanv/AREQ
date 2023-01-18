@@ -14,9 +14,9 @@ GRAY = (203, 214, 218)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BLUE = (255, 0, 0)
-YELLOW = (255, 185, 53)
+YELLOW = (0, 153, 230)
 RED = (0, 0, 255)
-GREEN = (0, 255, 0)
+GREEN = (0, 230, 0)
 DARK_GRAY = (175, 177, 179)
 
 # Windows names

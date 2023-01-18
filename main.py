@@ -91,39 +91,6 @@ while key != 27:
             currentMove = move
             t = time.time()
 
-    """
-    # If it's in the board
-    if game.isInTheBoard(move):
-        # Compute the distance between the current move and the last one
-        d = np.linalg.norm(np.array(move)-np.array(currentMove))
-
-        # If the distance is greater than the threshold and is the same for at least 3 seconds
-        if d<100 and time.time()-t>3:
-            # The move is valid, play it
-            game.play(move)
-
-            # Display the board
-            proj.draw(game.getEQ())
-
-            # Wait 1s before taking the reference frame
-            key = cv.waitKey(1000)
-            core.storeRefFrame()
-
-            # Reset variables
-            currentMove = [-1, -1]
-            t = time.time()
-
-        elif d>100:
-            # The move is not the same, store it and reset the timer
-            currentMove = move
-            t = time.time()
-
-    # If the game is over, display it
-    if game.game_over:
-        print("Game over.")
-        print(game.getResult())
-        break
-    """
     key = cv.waitKey(100)
 
 cv.destroyAllWindows()

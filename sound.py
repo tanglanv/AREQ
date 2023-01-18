@@ -1,83 +1,104 @@
-# Don't do import *! (It just makes this example smaller)
-from pedalboard import *
-from pedalboard.io import AudioFile
-from pedalboard.pedalboard import Pedalboard
+import threading
+import soundfile as sf
 import numpy as np
-import simpleaudio as sa #permet de jouer des fichiers .wav directement dans python en executant le script
+import sounddevice as sd
+import time
+import scipy as sps
+import pyloudnorm as pyln
 
-
-"""
-# Read in a whole file, resampling to our desired sample rate:
-samplerate = 44100.0
-with AudioFile('musique1.wav').resampled_to(
-        samplerate) as f:
-    audio = f.read(f.frames)
-"""
-"""
-# Make a pretty interesting sounding guitar pedalboard:
-board = Pedalboard([
-    Compressor(threshold_db=-50, ratio=25),
-    Gain(gain_db=30),
-    Chorus(),
-    LadderFilter(mode=LadderFilter.Mode.HPF12, cutoff_hz=900),
-    Phaser(),
-    #Convolution("./guitar_amp.wav", 1.0),
-    Reverb(room_size=0.25),
-])
-
-# Pedalboard objects behave like lists, so you can add plugins:
-board.append(Compressor(threshold_db=-25, ratio=10))
-board.append(Gain(gain_db=10))
-board.append(Limiter())
-
-# ... or change parameters easily:
-board[0].threshold_db = -40
-
-# Run the audio through this pedalboard!
-effected = board(audio, samplerate)
-
-# Write the audio back as a wav file:
-with AudioFile('processed-output.wav', 'w', samplerate, effected.shape[0]) as f:
-    f.write(effected)
-
-#Crée un waveObject et le joue jusqu'à ce qu'il se termine
-wave_obj = sa.WaveObject.from_wave_file('processed-output.wav')
-play_obj = wave_obj.play()
-#play_obj.wait_done()
-
-board2= Pedalboard([LadderFilter(mode=LadderFilter.Mode.HPF12, cutoff_hz=900)])
-
-rep = 0
-print("change the cutoff value")
-"""
-
-samplerate = 44100.0
-
-wave_obj = sa.WaveObject.from_wave_file("musique1.wav")
-play_obj = wave_obj.play()
-
-print(type(play_obj))
-
-while play_obj.is_playing():
-    # print("we are playing")
-    """
-    rep = input()
-    if rep !=0 :
-        //board2[0].cutoff_hz = rep
-        effected2 = board2(audio, samplerate)
-
-        # Write the audio back as a wav file:
-        with AudioFile('processed-output.wav', 'w', samplerate, effected.shape[0]) as f:
-            f.write(effected2)
-    """
+class Sound:
+    def __init__(self,path):
+        print("init of sound")
+        self.path = path
+        self.gain = [1,1,1,1,1]
+        self.loudness = [0.0,0.0,0.0,0.0,0.0]
 
 
 
 
+    def filter(self, data_eq, low_threshold_frequency, high_threshold_frequency):
+        # Design the Butterworth filter
+        nyquist = 0.5 * self.samplerate
+        low = low_threshold_frequency / nyquist
+        high = high_threshold_frequency / nyquist
+        b, a = sps.signal.butter(4, [low, high], btype='band', analog=False, output='ba')
+
+        # Apply the filter to the audio data using filtfilt
+        filtered_audio_data = sps.signal.filtfilt(b, a, data_eq)
+        return filtered_audio_data
+
+    def _play(self):
+        event = threading.Event()
+
+        def callback(outdata, frames, time, status):
+            # print("callback called")
+            inputData = wf.buffer_read(frames, dtype='float32')
+            # print("inputdata",len(inputData), " ", inputData[0:100])
+            #print("inputData", len(inputData))
+            dataArray = np.frombuffer(inputData, dtype='float32')
+
+            # print("dataArray", type(dataArray),len(dataArray))
+
+            filtered = []
+            filtered.append(self.filter(dataArray, 120, 300))
+            filtered.append(self.filter(dataArray, 300, 700))
+            filtered.append(self.filter(dataArray, 700, 2600))
+            filtered.append(self.filter(dataArray, 2600, 5200))
+            filtered.append(self.filter(dataArray, 5200, 20000))
+
+            #print("filtered", len(filtered)," ",len(filtered[0]) )
+
+            amplified = [filtered[i] * self.gain[i] for i in range(len(filtered))]
+
+
+            #print("amplified 0 : ",amplified[0])
+            #print("filtered 0 : ",filtered[0])
+
+            self.loudness = [self.get_loudness(data) for data in amplified]
+
+            # print("loudness : ",self.loudness)
+
+            recomposed = amplified[0] + amplified[1] + amplified[2] + amplified[3] + amplified[4]
+
+            # print("recomposed : ", type(recomposed),len(recomposed))
+            #print(" input: ", dataArray[20000:20100])
+
+            data = dataArray.tobytes('F')
+            # print("data ",len(data), " ",data[0:100])
+
+            if len(outdata) > len(data):
+                outdata[:len(data)] = data
+                outdata[len(data):] = b'\x00' * (len(outdata) - len(data))
+                raise sd.CallbackStop
+            else:
+                outdata[:] = data
+                # outdata = np.copy(data)
+
+        with sf.SoundFile(self.path) as wf:
+            self.samplerate = wf.samplerate
+            stream = sd.RawOutputStream(samplerate=wf.samplerate,
+                                        channels=wf.channels,
+                                        callback=callback,
+                                        blocksize=wf.samplerate,
+                                        finished_callback=event.set)
+            with stream:
+                event.wait()
+
+    def playsound(self):
+        new_thread = threading.Thread(target=self._play)
+        new_thread.start()
+
+    def set_Gain(self,i,a):
+        self.gain[i] = a
+
+    def get_loudness(self,data):
+        meter = pyln.Meter(self.samplerate)  # create BS.1770 meter
+        loudness = meter.integrated_loudness(data)  # measure loudness
+        return loudness
 
 
 
 
-
-
-
+if __name__ == "__main__":
+    sound = Sound("musique1.wav")
+    sound.playsound()
